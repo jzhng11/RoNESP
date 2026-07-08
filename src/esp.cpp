@@ -18,11 +18,9 @@ void ESP::Draw(const GameState& state, const EspConfig& cfg) {
     auto* draw = ImGui::GetBackgroundDrawList();
     if (!draw) return;
 
-    // Draw crosshair
     if (cfg.showCrosshair)
         DrawCrosshair();
 
-    // Draw each entity
     for (const auto& ent : state.entities) {
         if (!ent.IsValid()) continue;
         if (!ent.isAlive && !cfg.showDead) continue;
@@ -37,7 +35,6 @@ void ESP::DrawEntity(const GameState& state, const Entity& ent, const EspConfig&
     FVector2D screenSize(static_cast<float>(state.camera.screenWidth),
                          static_cast<float>(state.camera.screenHeight));
 
-    // Project world positions to screen
     FVector2D feetScreen, headScreen;
 
     if (!WorldToScreen(ent.feetPosition, state.camera.location, state.camera.rotation,
@@ -51,7 +48,6 @@ void ESP::DrawEntity(const GameState& state, const Entity& ent, const EspConfig&
     float boxHeight = std::abs(feetScreen.y - headScreen.y);
     float boxWidth = boxHeight * 0.5f;
 
-    // Set colors based on entity type
     uint32_t boxColor, nameColor;
     if (ent.isDowned) {
         boxColor = Color(1.f, 1.f, 0.2f);
@@ -70,7 +66,6 @@ void ESP::DrawEntity(const GameState& state, const Entity& ent, const EspConfig&
         nameColor = Color(0.4f, 0.8f, 1.f);
     }
 
-    // 2D Box
     if (cfg.showBoxes && boxHeight > 2.f && boxWidth > 1.f) {
         float x = feetScreen.x - boxWidth * 0.5f;
         float y = headScreen.y;
@@ -82,12 +77,10 @@ void ESP::DrawEntity(const GameState& state, const Entity& ent, const EspConfig&
         );
     }
 
-    // Health bar on the left side of the box
     if (cfg.showHealth) {
         DrawHealthBar(headScreen, feetScreen, ent.health, ent.maxHealth);
     }
 
-    // Name tag above the box
     if (cfg.showNames && !ent.name.empty()) {
         std::string label = ent.name;
         if (label.size() > 30) {
@@ -100,7 +93,6 @@ void ESP::DrawEntity(const GameState& state, const Entity& ent, const EspConfig&
         );
     }
 
-    // Distance (and downed label) below the feet
     float belowY = feetScreen.y + 2.f;
     if (cfg.showDist) {
         std::string distStr = std::format("{:.0f}m", ent.distance);
@@ -123,7 +115,6 @@ void ESP::DrawEntity(const GameState& state, const Entity& ent, const EspConfig&
         );
     }
 
-    // Snapline from feet to bottom-center of screen
     if (cfg.showTracers) {
         DrawLine(
             FVector2D(feetScreen.x, feetScreen.y),
@@ -168,16 +159,14 @@ void ESP::DrawHealthBar(const FVector2D& head, const FVector2D& feet, float heal
     if (height < 2.f) return;
     float width = 4.f;
 
-    float x = feet.x - height * 0.25f - width - 2.f; // left of the box
+    float x = feet.x - height * 0.25f - width - 2.f;
     float y = head.y;
 
     float ratio = std::clamp(health / maxHealth, 0.f, 1.f);
     float fillHeight = height * ratio;
 
-    // Background (dark)
     draw->AddRectFilled(ImVec2(x, y), ImVec2(x + width, y + height), Color(0.1f, 0.1f, 0.1f, 0.6f));
 
-    // Fill (green -> yellow -> red based on health)
     uint32_t fillColor;
     if (ratio > 0.6f) {
         fillColor = Color(0.2f, 1.f, 0.2f);
@@ -190,7 +179,6 @@ void ESP::DrawHealthBar(const FVector2D& head, const FVector2D& feet, float heal
     float fillY = y + (height - fillHeight);
     draw->AddRectFilled(ImVec2(x, fillY), ImVec2(x + width, y + fillHeight), fillColor);
 
-    // Outline
     draw->AddRect(ImVec2(x, y), ImVec2(x + width, y + height), Color(0.5f, 0.5f, 0.5f, 0.5f), 0.f, 0, 1.f);
 }
 

@@ -5,11 +5,8 @@ static inline double DegToRad(double deg) {
     return deg * std::numbers::pi / 180.0;
 }
 
-// Build camera right/up/forward vectors from a UE-style FRotator
-// UE: +X forward, +Y right, +Z up
-// pitch: rotation around Y (positive = look down, negative = look up)
-// yaw:   rotation around Z (clockwise from +X)
-// roll:  rotation around X (positive = tilt right)
+// UE FRotator to camera axes. UE: +X forward, +Y right, +Z up.
+// pitch=+Y axis (pos=look down), yaw=+Z (clockwise from +X), roll=+X (pos=tilt right)
 static void BuildCameraAxes(const FRotator& rotation, FVector& right, FVector& up, FVector& forward) {
     double sp = sin(DegToRad(rotation.pitch));
     double cp = cos(DegToRad(rotation.pitch));

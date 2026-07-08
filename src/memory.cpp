@@ -73,7 +73,7 @@ std::string Memory::ReadString(uintptr_t addr, size_t maxLen) const {
     ReadProcessMemory(m_ProcessHandle, reinterpret_cast<LPCVOID>(addr), buf, readSize, &bytesRead);
     if (bytesRead > 0) {
         buf[bytesRead] = 0;
-        // find null terminator within what we read
+    
         for (size_t i = 0; i < bytesRead; ++i) {
             if (buf[i] == 0)
                 return std::string(buf, i);
@@ -93,7 +93,6 @@ uintptr_t Memory::ResolvePointer(uintptr_t addr, int level) const {
 }
 
 uintptr_t Memory::ScanPattern(const std::string& pattern, const std::string& mask) const {
-    // Get module info to know our range
     MODULEENTRY32W entry{};
     entry.dwSize = sizeof(entry);
     HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, m_ProcessId);
@@ -110,7 +109,6 @@ uintptr_t Memory::ScanPattern(const std::string& pattern, const std::string& mas
     if (!base || !size)
         return 0;
 
-    // Read the module in chunks
     constexpr size_t CHUNK_SIZE = 0x10000;
     std::vector<uint8_t> buffer(CHUNK_SIZE);
 

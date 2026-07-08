@@ -17,7 +17,6 @@ bool Overlay::Create(const wchar_t* windowTitle, uint32_t width, uint32_t height
     if (!CreateDeviceD3D())
         return false;
 
-    // Setup ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -52,7 +51,6 @@ void Overlay::Destroy() {
 bool Overlay::BeginFrame() {
     if (!m_Running) return false;
 
-    // Process window messages
     MSG msg;
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
         TranslateMessage(&msg);
@@ -64,7 +62,6 @@ bool Overlay::BeginFrame() {
     if (!m_Running)
         return false;
 
-    // Check if window was resized (e.g. after alt-tab)
     RECT cr;
     if (GetClientRect(m_Window, &cr)) {
         uint32_t newW = cr.right - cr.left;
@@ -95,7 +92,6 @@ void Overlay::EndFrame() {
 
     HRESULT hr = m_SwapChain->Present(1, 0);
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
-        // Device lost - recreate
         m_Running = false;
     }
 }
@@ -111,7 +107,6 @@ bool Overlay::CreateOverlayWindow(uint32_t width, uint32_t height) {
 
     RegisterClassExW(&wc);
 
-    // Find game window
     m_GameWindow = FindWindowW(nullptr, L"Ready Or Not");
     if (!m_GameWindow) {
         m_GameWindow = FindWindowW(L"UnrealWindow", L"Ready Or Not  ");
@@ -138,12 +133,10 @@ bool Overlay::CreateOverlayWindow(uint32_t width, uint32_t height) {
     if (!m_Window)
         return false;
 
-    // Attach as child of game window
     if (m_GameWindow) {
         SetParent(m_Window, m_GameWindow);
     }
 
-    // Transparent via colorkey
     SetLayeredWindowAttributes(m_Window, RGB(0, 0, 0), 0, LWA_COLORKEY);
 
     SetWindowPos(m_Window, HWND_TOP, 0, 0, m_Width, m_Height, SWP_NOACTIVATE);
@@ -196,7 +189,6 @@ void Overlay::EnableInput(bool enable) {
     if (enable) {
         SetWindowLongPtrW(m_Window, GWL_EXSTYLE,
             GetWindowLongPtrW(m_Window, GWL_EXSTYLE) & ~WS_EX_TRANSPARENT);
-        // Release cursor clip so the user can reach the menu
         ClipCursor(nullptr);
     } else {
         SetWindowLongPtrW(m_Window, GWL_EXSTYLE,
@@ -208,18 +200,15 @@ bool Overlay::ResizeSwapChain(uint32_t width, uint32_t height) {
     if (!m_SwapChain || !m_Device)
         return false;
 
-    // Release old RTV
     if (m_RenderTargetView) {
         m_RenderTargetView->Release();
         m_RenderTargetView = nullptr;
     }
 
-    // Resize swap chain buffers
     HRESULT hr = m_SwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
     if (FAILED(hr))
         return false;
 
-    // Recreate RTV
     ID3D11Texture2D* backBuffer = nullptr;
     hr = m_SwapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
     if (FAILED(hr))
